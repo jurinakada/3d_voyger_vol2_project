@@ -508,6 +508,7 @@ GameObject:
   - component: {fileID: 744721678}
   - component: {fileID: 744721677}
   - component: {fileID: 744721676}
+  - component: {fileID: 744721681}
   m_Layer: 0
   m_Name: Orion
   m_TagString: Untagged
@@ -718,6 +719,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &744721681
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 744721675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 636240e3a51f9e7449734faf26161182, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrajectoryLoader
+  csvFile: {fileID: 4900000, guid: 5e5acd2a9bb16b742b99b023c792afa0, type: 3}
+  scaleFactor: 1000000
 --- !u!1 &1439765675
 GameObject:
   m_ObjectHideFlags: 0
