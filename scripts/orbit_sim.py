@@ -37,10 +37,29 @@ for i in range(steps):
 
 trajectory = np.array(trajectory)
 
-plt.figure(figsize=(8,8))
-plt.plot(trajectory[:,0], trajectory[:,1])
-plt.scatter(0,0,label="Earth")
-plt.scatter(384400000,0,label="Moon")
-plt.legend()
-plt.axis("equal")
-plt.show()
+# plot the orbit for part2
+# plt.figure(figsize=(8,8))
+# plt.plot(trajectory[:,0], trajectory[:,1])
+# plt.scatter(0,0,label="Earth")
+# plt.scatter(384400000,0,label="Moon")
+# plt.legend()
+# plt.axis("equal")
+# plt.show()
+
+
+# save the orbit data for unity
+
+trajectory = np.array(trajectory)
+
+time_data = np.arange(len(trajectory))
+
+df = pd.DataFrame({
+   "time": time_data,
+   "x": trajectory[:,0],
+   "y": trajectory[:,1],
+   "z": trajectory[:,2]
+})
+
+df.to_csv("output/artemis1_trajectory.csv", index=False)
+
+print("CSV保存完了")
