@@ -19,6 +19,8 @@
 
 .DS_Store
 Thumbs.db
+__pycache__/
+*.py[cod]
 
 venture2_project/Library/
 venture2_project/Temp/
