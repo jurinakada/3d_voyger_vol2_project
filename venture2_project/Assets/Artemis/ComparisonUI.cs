@@ -21,9 +21,9 @@ namespace Artemis
 
         void Start()
         {
-            orbit = Object.FindFirstObjectByType<OrbitPlayer>();
+            orbit = Object.FindAnyObjectByType<OrbitPlayer>();
             if (orbit == null) { enabled = false; return; }
-            overlay = Object.FindFirstObjectByType<NasaOverlayPlayer>();
+            overlay = Object.FindAnyObjectByType<NasaOverlayPlayer>();
 
             // シーク用に物理CSVの時間範囲を取得(OrbitPlayerは範囲を公開していないため同じCSVを読む)
             if (orbit.csvFile != null)

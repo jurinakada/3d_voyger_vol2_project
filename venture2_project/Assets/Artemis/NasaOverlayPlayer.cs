@@ -34,7 +34,7 @@ namespace Artemis
 
         void Start()
         {
-            orbit = Object.FindFirstObjectByType<OrbitPlayer>();
+            orbit = Object.FindAnyObjectByType<OrbitPlayer>();
             if (orbit == null || orbit.scale == null || data == null || data.Count == 0)
             {
                 Debug.LogWarning("NasaOverlayPlayer: OrbitPlayer or aligned CSV missing; overlay disabled.");
@@ -50,7 +50,7 @@ namespace Artemis
             var trailGo = new GameObject("NASA Trail");
             trailGo.transform.SetParent(transform, false);
             var lr = trailGo.AddComponent<LineRenderer>();
-            var physTrail = Object.FindFirstObjectByType<TrajectoryRenderer>();
+            var physTrail = Object.FindAnyObjectByType<TrajectoryRenderer>();
             if (physTrail != null && physTrail.TryGetComponent(out LineRenderer physLr))
             {
                 lr.sharedMaterial = physLr.sharedMaterial;   // 既存軌跡の見た目を踏襲
