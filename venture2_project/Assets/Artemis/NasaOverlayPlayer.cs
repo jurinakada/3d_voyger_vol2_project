@@ -62,9 +62,9 @@ namespace Artemis
                 lr.widthMultiplier = 0.5f;
             }
             trail = trailGo.AddComponent<TrajectoryRenderer>();
-            trail.outboundColor = orionColor;  // NASA側は単色グラデで区別
+            trail.outboundColor = orionColor;  // NASA側は全区間オレンジ単色(実月の水色と混同しないように)
             trail.flybyColor = orionColor;
-            trail.returnColor = moonGhostColor;
+            trail.returnColor = orionColor;
             trail.Init(data, s);
         }
 
