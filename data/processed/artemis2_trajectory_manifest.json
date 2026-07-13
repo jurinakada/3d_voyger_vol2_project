@@ -1,0 +1,30 @@
+{
+  "generated_at_utc": "2026-06-01T09:28:03.527161Z",
+  "source": "/tmp/all-artemis-ii-oem-files-current.zip",
+  "source_page": "https://www.nasa.gov/missions/artemis/artemis-2/track-nasas-artemis-ii-mission-in-real-time/",
+  "selected_oem_zip": "Artemis_II_OEM_2026_04_10_Post-ICPS-Sep-to-EI.zip",
+  "summary": {
+    "oem_file": "Artemis_II_OEM_2026_04_10_Post-ICPS-Sep-to-EI.asc",
+    "samples": 3262,
+    "start_utc": "2026-04-02T01:57:37.084000Z",
+    "end_utc": "2026-04-10T23:53:16.723000Z",
+    "duration_sec": 770139.639,
+    "duration_days": 8.913653229166666,
+    "center": "EARTH",
+    "reference_frame": "EME2000",
+    "time_system": "UTC",
+    "position_unit": "km",
+    "velocity_unit": "km/s",
+    "min_earth_distance_km": 6514.95904800657,
+    "min_earth_distance_utc": "2026-04-10T23:53:16.723000Z",
+    "max_earth_distance_km": 413144.4447087078,
+    "max_earth_distance_utc": "2026-04-06T23:02:51.667000Z",
+    "min_speed_km_s": 0.413552244898841,
+    "max_speed_km_s": 10.985353550707373
+  },
+  "notes": [
+    "NASA AROW OEM is treated as the public Orion trajectory baseline.",
+    "Moon columns are intentionally blank until SPICE or Horizons alignment is added.",
+    "Unity should convert km to scene units during import/playback."
+  ]
+}
