@@ -32,11 +32,22 @@ NASA AROW(Artemis Real-time Orbit Website)公開の Artemis II エフェメリ�
 
 別法(さらに安全): 空のシーンに空 GameObject を置き、`OrbitPlayer` + `LineRenderer`(に `TrajectoryRenderer`)+ `ScaleConfig.asset` を割り当て、`Csv File` に上記NASA CSVを入れて Play。
 
-## 既知の制約(Phase 3 で解消)
+## 月データ(Phase 3 第一歩・実装済み)
 
-- 月が出ない/原点に居る: NASA OEM に月位置が無いため、再生用CSVの月列は 0 のプレースホルダ。実際の月を出すには Horizons/SPICE で同時刻・同フレーム(EME2000)の月エフェメリスが必要。
-- 物理版との重ね合わせ比較は未対応: NASA=EME2000 3D、物理版=平面モデルで面・元期が違う。共通フレームへ載せる可否検証が Phase 3 の最初の一手。
-- スケール/座標変換は既存 `ScaleConfig`(1 unit = 1000 km)をそのまま流用。NASA の z(面外成分)も `ScaleConfig.KmToUnityPos` 経由でそのまま 3D 表示される。
+- `scripts/fetch_moon_ephemeris.py` が JPL Horizons から地心・ICRF/J2000(=EME2000と同一視可)の月位置を取得
+  → `data/processed/moon_ephemeris_horizons.csv`(10分刻み・OEM全期間カバー)。
+- `nasa_to_unity_csv.py` が Orion 各時刻へ線形補間して moon 列を実データで充填。phase も実ジオメトリ(月距離)で再ラベル。
+- 検証結果: 月最接近高度 6,546 km(t≈4.88日)。NASA公式発表 6,545 km と1km差、物理版 6,541 km とも整合。
+  座標系の整合が取れている証拠であり、Phase 3 本丸(物理 vs 実データ重ね合わせ)に進める。
+- MainScene_NASA は地球・月を実寸表示(Earth scale 12.742 / Moon 3.474)。NASA軌道は近地点6,564km・
+  再突入6,515kmまで地球に接近するため、誇張表示(scale 16)だと軌道が地球内部に潜って見える。実寸なら正しく地表ぎわを通る。
+  物理版 MainScene は従来どおり誇張表示のまま。
+
+## 残る制約
+
+- 物理版との重ね合わせ比較は未実装: 物理版は平面(z=0)モデル・独自元期なので、同一シーンに重ねるには
+  面合わせ(回転)と t=0 対応付けの設計判断が必要。次のステップ。
+- Horizons の時刻系は TDB(UTCと約69秒差)。補正済みだが、残差は月位置で~数十km(距離38万kmの0.02%)で可視化には無影響。
 
 ## 再現
 
