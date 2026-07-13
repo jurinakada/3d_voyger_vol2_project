@@ -25,7 +25,7 @@ for i in range(steps):
 
    r_moon = moon_pos - orion_pos
    d_moon = np.linalg.norm(r_moon)
-   a_moon = G * M_MOON * r_moon / (d_moon**3)
+   a_moon = G * M_MOON * r_moon / (d_moon**3)S
 
    total_acc = a_earth + a_moon
 
