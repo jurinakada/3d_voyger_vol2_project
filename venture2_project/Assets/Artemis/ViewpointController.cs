@@ -7,8 +7,10 @@ namespace Artemis
     /// <summary>
     /// §9.3 視点切替：地球‑月系を外から見渡す俯瞰視点と、Orion宇宙船から見た視点を切り替える。
     /// Main Camera に付与し、OrbitPlayer が毎フレーム更新する天体位置を追従する。
+    /// 非VR（Game画面）専用。HMDのカメラはトラッキングが姿勢を書くため、VRでは
+    /// これを付けず <see cref="VRViewpointRig"/>（XR Origin 側を動かす）を使う。
     /// </summary>
-    public class ViewpointController : MonoBehaviour
+    public class ViewpointController : MonoBehaviour, IViewpointSwitcher
     {
         [Header("依存")]
         public OrbitPlayer player;
