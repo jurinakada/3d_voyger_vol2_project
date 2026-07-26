@@ -131,6 +131,7 @@ GameObject:
   - component: {fileID: 366869963}
   - component: {fileID: 366869962}
   - component: {fileID: 366869961}
+  - component: {fileID: 900000001}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -256,6 +257,71 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &900000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 366869960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eefdc5cb5bb745fcb40e2e3c9f87061e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Artemis.ViewpointController
+  player: {fileID: 1471262417}
+  orion: {fileID: 1473595239}
+  earth: {fileID: 396175283}
+  overviewPosition: {x: 0, y: 600, z: 0}
+  overviewEulerAngles: {x: 90, y: 0, z: 0}
+  orionViewOffset: {x: 0, y: 0.2, z: 0}
+  orionViewLooksAtEarth: 0
+--- !u!1 &900000010
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 900000011}
+  - component: {fileID: 900000012}
+  m_Layer: 0
+  m_Name: SimulationHud
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &900000011
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900000010}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &900000012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900000010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f15ef740414149c48847d1f84505185b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Artemis.SimulationHud
+  player: {fileID: 1471262417}
+  viewpoint: {fileID: 900000001}
 --- !u!1 &396175279
 GameObject:
   m_ObjectHideFlags: 0

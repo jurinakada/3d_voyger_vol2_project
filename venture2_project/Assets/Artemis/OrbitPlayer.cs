@@ -34,6 +34,11 @@ namespace Artemis
         public double CurrentMissionTimeSec { get; private set; }
         public string CurrentPhase { get; private set; } = "";
 
+        /// <summary>現在補間サンプル（km単位）。UI表示（座標・速度）用。</summary>
+        public TrajectorySample Current { get; private set; }
+        /// <summary>Orion速度のUnityワールド空間向き（単位ベクトル）。Orion視点カメラ用。</summary>
+        public Vector3 CurrentOrionVelocityDir { get; private set; } = Vector3.forward;
+
         void Awake()
         {
             if (csvFile != null)
@@ -66,6 +71,10 @@ namespace Artemis
         {
             var s = TrajectoryLoader.Interpolate(data, tSec);
             CurrentPhase = s.phase;
+            Current = s;
+
+            Vector3 velDir = new Vector3((float)s.ovx, (float)s.ovz, (float)s.ovy);
+            if (velDir.sqrMagnitude > 1e-6f) CurrentOrionVelocityDir = velDir.normalized;
 
             // 参照枠原点（§9.3）。Moon基準なら月を原点に置き相対座標で表示。
             Vector3 earthPos = scale.KmToUnityPos(0, 0, 0);
