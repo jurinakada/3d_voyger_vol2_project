@@ -18,37 +18,37 @@ namespace Artemis.EditorTools
         const string k_MaterialPath = "Assets/Artemis/Materials/StarfieldSkybox.mat";
         const string k_MaterialDir = "Assets/Artemis/Materials";
 
-        [Tooltip("キューブマップ1面の解像度。上げると星が細かくなるがアセットも重くなる。")]
+        /// <summary>キューブマップ1面の解像度。上げると星が細かくなるがアセットも重くなる。</summary>
         const int k_FaceSize = 512;
-        const int k_StarsPerFace = 1200;
+        /// <summary>1面あたりの星数。全天ではこの6倍。増やすと空が白っぽく賑やかになる。</summary>
+        const int k_StarsPerFace = 220;
         const int k_Seed = 20260727;
 
         /// <summary>宇宙の地の色。真っ黒だとVRで奥行きが掴めないので、ごくわずかに青を残す。</summary>
         static readonly Color k_SpaceColor = new Color(0.006f, 0.008f, 0.016f);
 
+        /// <summary>
+        /// メニューから明示的に実行したときは星空を必ず描き直す。
+        /// 星数などの定数をいじった結果をすぐ確認できるようにするため
+        /// （毎回同じ絵に戻らないよう、実行のたびに乱数の種もずらす）。
+        /// </summary>
         [MenuItem("Artemis/Build Starfield Skybox", false, 11)]
         public static void BuildAndApply()
         {
-            ApplyToActiveScene(EnsureMaterial());
+            ApplyToActiveScene(EnsureMaterial(true));
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             Debug.Log($"[StarfieldSkyboxBuilder] {SceneManager.GetActiveScene().name} に星空スカイボックスを設定しました。");
         }
 
         /// <summary>星空マテリアルを返す。無ければキューブマップごと生成する。</summary>
-        public static Material EnsureMaterial()
+        /// <param name="regenerate">true なら既存のキューブマップを捨てて描き直す。</param>
+        public static Material EnsureMaterial(bool regenerate = false)
         {
             var material = AssetDatabase.LoadAssetAtPath<Material>(k_MaterialPath);
-            if (material != null) return material;
+            if (material != null && !regenerate) return material;
 
             if (!AssetDatabase.IsValidFolder(k_MaterialDir))
                 AssetDatabase.CreateFolder("Assets/Artemis", "Materials");
-
-            var cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(k_CubemapPath);
-            if (cubemap == null)
-            {
-                cubemap = GenerateCubemap();
-                AssetDatabase.CreateAsset(cubemap, k_CubemapPath);
-            }
 
             var shader = Shader.Find("Skybox/Cubemap");
             if (shader == null)
@@ -57,9 +57,26 @@ namespace Artemis.EditorTools
                 return null;
             }
 
-            material = new Material(shader);
-            material.SetTexture("_Tex", cubemap);
-            AssetDatabase.CreateAsset(material, k_MaterialPath);
+            var cubemap = regenerate ? null : AssetDatabase.LoadAssetAtPath<Cubemap>(k_CubemapPath);
+            if (cubemap == null)
+            {
+                cubemap = GenerateCubemap(regenerate ? Random.Range(int.MinValue, int.MaxValue) : k_Seed);
+                AssetDatabase.DeleteAsset(k_CubemapPath);
+                AssetDatabase.CreateAsset(cubemap, k_CubemapPath);
+            }
+
+            if (material == null)
+            {
+                material = new Material(shader);
+                material.SetTexture("_Tex", cubemap);
+                AssetDatabase.CreateAsset(material, k_MaterialPath);
+            }
+            else
+            {
+                material.SetTexture("_Tex", cubemap);
+                EditorUtility.SetDirty(material);
+                AssetDatabase.SaveAssets();
+            }
             return material;
         }
 
@@ -77,10 +94,10 @@ namespace Artemis.EditorTools
         }
 
         // ------------------------------------------------------------------
-        static Cubemap GenerateCubemap()
+        static Cubemap GenerateCubemap(int seed)
         {
             var cube = new Cubemap(k_FaceSize, TextureFormat.RGB24, true);
-            var rng = new System.Random(k_Seed);
+            var rng = new System.Random(seed);
             var pixels = new Color[k_FaceSize * k_FaceSize];
 
             for (int face = 0; face < 6; face++)
@@ -113,9 +130,10 @@ namespace Artemis.EditorTools
 
         static void SplatStar(Color[] pixels, float cx, float cy, System.Random rng)
         {
-            // 暗い星が大多数、明るい星がごく少数になるよう偏らせる。
-            float magnitude = Mathf.Pow((float)rng.NextDouble(), 5f);
-            float brightness = 0.20f + magnitude * 1.6f;
+            // 暗い星が多数、明るい星が少数になるよう偏らせる。星数が少ないので、
+            // 偏らせすぎると全部が消え入るような点になってしまう（指数を上げるほど暗い星が増える）。
+            float magnitude = Mathf.Pow((float)rng.NextDouble(), 3f);
+            float brightness = 0.30f + magnitude * 1.6f;
             float radius = 0.45f + magnitude * 1.1f;
 
             // 青白い星と赤みがかった星を少し混ぜる。

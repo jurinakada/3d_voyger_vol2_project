@@ -8,6 +8,8 @@ using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
+using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
 namespace Artemis.EditorTools
 {
@@ -54,6 +56,9 @@ namespace Artemis.EditorTools
 
             var origin = EnsureXRRig();
             EnsureVRUI(player, origin, earth, orion);
+
+            // 既定の空は青いプロシージャル空。宇宙空間に見えないので星空に差し替える。
+            StarfieldSkyboxBuilder.ApplyToActiveScene(StarfieldSkyboxBuilder.EnsureMaterial());
 
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
@@ -199,7 +204,7 @@ namespace Artemis.EditorTools
                 cam.nearClipPlane = 0.05f;
             }
 
-            if (origin != null) DisableGravity(origin);
+            if (origin != null) ConfigureSpaceLocomotion(origin);
 
             if (Object.FindAnyObjectByType<XRInteractionManager>() == null)
                 Undo.RegisterCreatedObjectUndo(
@@ -213,11 +218,14 @@ namespace Artemis.EditorTools
         }
 
         /// <summary>
-        /// Starter Assets のリグは床のある部屋を前提に重力が有効。宇宙空間には床が無いため、
-        /// 切らないと俯瞰視点で自由落下し続ける。実行時にも <see cref="VRViewpointRig"/> が
-        /// 同じことをするが、シーン側にも保存してインスペクタ上で分かるようにしておく。
+        /// Starter Assets のリグは「床のある部屋」を前提にしている。宇宙空間で使うには
+        ///  ・重力を切る（床が無いので切らないと俯瞰視点で落下し続ける）
+        ///  ・スティックをテレポートから連続移動へ（テレポート先の床が無い）
+        ///  ・上下にも飛べるようにする
+        /// が要る。実行時にも <see cref="VRViewpointRig"/> が同じことをするが、シーン側にも
+        /// 保存してインスペクタ上で分かるようにしておく。
         /// </summary>
-        static void DisableGravity(XROrigin origin)
+        static void ConfigureSpaceLocomotion(XROrigin origin)
         {
             foreach (var gravity in origin.GetComponentsInChildren<GravityProvider>(true))
             {
@@ -226,6 +234,37 @@ namespace Artemis.EditorTools
                 gravity.enabled = false;
                 PrefabUtility.RecordPrefabInstancePropertyModifications(gravity);
             }
+
+            foreach (var move in origin.GetComponentsInChildren<ContinuousMoveProvider>(true))
+                SetSerializedBool(move, "m_EnableFly", true);
+
+            // 右コントローラはスナップターンに残す（座ったままでも向きを変えられるように）。
+            foreach (var controller in origin.GetComponentsInChildren<ControllerInputActionManager>(true))
+            {
+                bool isRight = controller.name.IndexOf("Right", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                SetSerializedBool(controller, "m_SmoothMotionEnabled", !isRight);
+                if (isRight) SetSerializedBool(controller, "m_SmoothTurnEnabled", false);
+            }
+        }
+
+        /// <summary>
+        /// private な [SerializeField] を書き換える。プロパティのセッターは
+        /// 入力アクションの有効/無効まで動かしてしまうため、エディタでは直接シリアライズ値を触る。
+        /// </summary>
+        static void SetSerializedBool(Object target, string propertyPath, bool value)
+        {
+            var so = new SerializedObject(target);
+            var property = so.FindProperty(propertyPath);
+            if (property == null)
+            {
+                Debug.LogWarning($"[VRSceneBuilder] {target.GetType().Name}.{propertyPath} が見つかりません。", target);
+                return;
+            }
+
+            Undo.RecordObject(target, k_Undo);
+            property.boolValue = value;
+            so.ApplyModifiedProperties();
+            PrefabUtility.RecordPrefabInstancePropertyModifications(target);
         }
 
         static XROrigin ReplaceRig(XROrigin current)

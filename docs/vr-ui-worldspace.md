@@ -11,6 +11,19 @@
      インタラクタ（レイ）も入っていないため、そのままではUIを押せない。
 3. Play して HMD をかぶる。
 
+## 操作
+
+| 入力 | 動作 |
+|---|---|
+| 左スティック | 見ている方向へ飛ぶ（上下含む3D。倒した方向へ移動、左右で横滑り） |
+| 右スティック 左右 | スナップターン（座ったままでも向きを変えられる） |
+| トリガー | パネルのボタンを押す（レイを当てて引く） |
+| 頭を振る | 見回す。パネルは40°を超えたときだけゆっくり追従する |
+
+テレポートは無効にしている（宇宙空間には飛び先の床が無く、狙っている間はUIのレイが消えてしまうため）。
+移動の速さは `VRViewpointRig.moveSpeed`（既定2.5）。実際の速さには XR Origin の拡大率が掛かるので、
+俯瞰視点では 75 unit/s ＝ 地球‑月間（384 unit）を約5秒で横断する。
+
 何度実行しても結果は同じ（既存オブジェクトは名前で見つけて設定を上書きするだけ）。
 `MainScene` / `MainScene_NASA` には一切触れない。
 
@@ -23,6 +36,7 @@
 | OrbitPlayer | `orion_trajectory.csv` と `ScaleConfig.asset` を割当て、playbackSeconds=180 |
 | XR Origin (XR Rig) | Starter Assets の完成品。トラッキング・Near-Far Interactor（UI操作有効）・移動が設定済み |
 | VR UI | `VRViewpointRig` + `VRPanelUI` |
+| 星空スカイボックス | 既定の青い空を星空に差し替え（下記） |
 
 XRカメラの far clip は 5000 に上げている（地球‑月系は 400 unit 超あり、既定 1000 だと復路が切れる）。
 
@@ -34,6 +48,7 @@ XRカメラの far clip は 5000 に上げている（地球‑月系は 400 uni
 | `Assets/Artemis/VRViewpointRig.cs` | VR用の視点切替。XR Origin 側を動かす |
 | `Assets/Artemis/IViewpointSwitcher.cs` | 視点切替の共通口。非VR用 `ViewpointController` とVR用 `VRViewpointRig` を同じUIから扱う |
 | `Assets/Artemis/Editor/VRSceneBuilder.cs` | 上記の組み立てメニュー |
+| `Assets/Artemis/Editor/StarfieldSkyboxBuilder.cs` | 星空キューブマップの生成とスカイボックス設定 |
 
 `OrbitPlayer` の公開APIシグネチャは変更していない。`1 unit = 1000 km`（`ScaleConfig`）と
 CSVの数値定義にも触れていない。既存の `SimulationHud`（Screen Space）は非VR確認用にそのまま残している。
@@ -50,12 +65,38 @@ CSVの数値定義にも触れていない。既存の `SimulationHud`（Screen 
 XR Origin を拡大して利用者を巨人にすることで、系全体が模型サイズに見える
 （俯瞰=30倍、Orion視点=1倍。インスペクタで調整可）。**CSVもScaleConfigも変更していない。**
 
-### 重力を切る
-Starter Assets のリグは**床のある部屋**を前提に `GravityProvider` が有効になっている。
-宇宙空間には床が無く、俯瞰視点は切替時にしか位置を書かないため、そのままだと自由落下し続ける
-（Orion視点は毎フレーム位置を書くので症状が出ない）。
-`VRViewpointRig.disableRigGravity`（既定ON）が実行時に切り、`Build VR Scene` はシーン側にも保存する。
-上下方向にも移動したい場合は `enableFlyMovement` をON。
+### リグを「部屋」向けから「宇宙空間」向けに設定し直す
+Starter Assets のリグは**床のある部屋**を前提にしている。宇宙空間ではそのままだと3つ壊れる。
+
+| 既定の挙動 | 宇宙での症状 | `VRViewpointRig` の対処（既定ON） |
+|---|---|---|
+| `GravityProvider` が有効 | 床が無いので落下し続ける（俯瞰視点は切替時にしか位置を書かないため症状が出る。Orion視点は毎フレーム書くので出ない） | `disableRigGravity` |
+| スティック＝テレポート（`ControllerInputActionManager.smoothMotionEnabled` が false で **Moveアクション自体が無効**） | テレポート先の床が無いので、スティックを倒しても何も起きない | `useContinuousMove` / `enableFlyMovement` / `disableTeleport` |
+| レイの到達距離がワールド固定値（`castDistance` 10 unit） | 俯瞰視点は XR Origin を30倍にするためパネルが約27 unit 先に来て、**レイがボタンまで届かない** | `scaleInteractorReach` |
+
+3つ目が分かりにくい。パネルは XR Origin の子なので拡大率ぶん遠ざかるが、
+`CurveInteractionCaster.castDistance` と `CurveVisualController.maxVisualCurveDistance` は
+ワールド空間の固定値なので一緒には伸びない。視点を切り替えるたびに拡大率を掛け直している
+（線の太さ `LineRenderer.widthMultiplier` も同様）。
+
+`Build VR Scene` は重力・飛行・スティック割当をシーン側にも保存するので、
+インスペクタでも設定が見える。
+
+### 背景は星空キューブマップを自前生成する
+既定は Unity 組み込みの青いプロシージャル空で、宇宙空間に見えない。
+アセットストアからのダウンロードに依存させたくないため、`StarfieldSkyboxBuilder` が
+星空のキューブマップ（1面512px×6面）をコードで描いて `Skybox/Cubemap` マテリアルに割り当てる。
+
+- **Artemis → Build Starfield Skybox** で単独実行できる（`Build VR Scene` からも自動で呼ばれる）。
+- 生成物は `Assets/Artemis/Materials/StarfieldCubemap.asset` と `StarfieldSkybox.mat`。
+  メニューから実行したときは**毎回描き直す**（乱数の種もずらすので星並びが変わる）。
+  `Build VR Scene` 経由では既存があれば再利用するため、シーンを組み直しても空は変わらない。
+- 星の細かさは `k_FaceSize`、密度は `k_StarsPerFace`（既定220／面、全天で約1300個）で変わる。
+  明暗の偏りは `SplatStar` の `magnitude` の指数（既定3。上げるほど暗い星が増える）。
+- 面の中央から離れた画素ほど立体角が小さいため、`(1+s²+t²)^-1.5` の確率で間引いている
+  （等確率で置くとキューブの角に星が密集して見える）。
+- 空が暗くなると環境光もほぼ0になり天体の影側が真っ黒になるので、
+  `AmbientMode.Flat` で弱い環境光（0.10, 0.11, 0.14）を別に入れている。
 
 ### 酔い対策
 - 俯瞰視点の位置は**切替時に一度だけ**適用する。毎フレーム上書きすると Starter Assets の
